@@ -9,6 +9,7 @@ func GenerateUserToken(username string) (string, error) {
 	log.WithFields(log.Fields{
 		"user": username,
 	}).Info("Generate user token")
+
 	claims := jwt.StandardClaims{
 		Subject:   username,
 		ExpiresAt: jwt.Now(),

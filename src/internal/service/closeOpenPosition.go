@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -31,14 +30,17 @@ func StartService(repository *repository.Postgres) {
 		err := srv.database.ListenNotify()
 		log.Fatalf("fatal err: %v", err)
 	}()
+
 	go func() {
 		err := srv.database.ListenPosPriceUpd("listen for pos upd")
 		log.Fatalf("fatal err: %v", err)
 	}()
+
 	lis, err := net.Listen("tcp", "localhost:8082")
 	if err != nil {
 		log.Fatalf("Couldn't start listen: %v", err)
 	}
+
 	grpcServer := grpc.NewServer()
 	protocol.RegisterPositionServiceServer(grpcServer, srv)
 	if err = grpcServer.Serve(lis); err != nil {
@@ -64,10 +66,12 @@ func (s server) GetUserData(ctx context.Context, req *protocol.Token) (*protocol
 	if err != nil {
 		return nil, err
 	}
+
 	balance, err := s.database.GetUserBalance(ctx, req.Token)
 	if err != nil {
 		return nil, err
 	}
+
 	positionsBytes, err := json.Marshal(positions)
 	if err != nil {
 		return nil, err
@@ -91,6 +95,7 @@ func (s server) SendClosePositionRequest(ctx context.Context, price *protocol.Po
 	if !s.database.ValidateToken(ctx, price.Token) {
 		return &protocol.Response{Message: "FAIL"}, nil
 	}
+
 	if _, ok := s.database.PriceChannels[price.Symbol]; ok {
 		if _, ok = s.database.PriceChannels[price.Symbol][price.Id]; ok {
 			if err := s.database.ClosePosition(ctx, price); err == nil {
@@ -112,12 +117,12 @@ func (s server) SendOpenPositionRequest(ctx context.Context, price *protocol.Pos
 	if s.database.LastPrices.Values[receivedPrice.Symbol] != receivedPrice {
 		return &protocol.Response{Message: "FAIL"}, nil
 	}
+
 	if !s.database.ValidateToken(ctx, price.Token) {
 		return &protocol.Response{Message: "FAIL"}, nil
 	}
-	_, err := s.database.OpenPosition(ctx, price)
-	fmt.Println("")
-	if err != nil {
+
+	if _, err := s.database.OpenPosition(ctx, price); err != nil {
 		return &protocol.Response{Message: "FAIL"}, err
 	}
 	return &protocol.Response{Message: "OK"}, nil
