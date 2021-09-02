@@ -60,8 +60,22 @@ func (s server) Donate(ctx context.Context, req *protocol.DonateValue) (*protoco
 	return &protocol.Response{Message: "OK"}, nil
 }
 
-func (s server) GetUserData(ctx context.Context, req *protocol.Token) (*protocol.UserData, error) {
+func (s server) GetUserBalance(ctx context.Context, req *protocol.Token) (*protocol.Balance, error) {
+	if !s.database.ValidateToken(ctx, req.Token) {
+		return nil, errors.New("Unauthorized ")
+	}
 
+	balance, err := s.database.GetUserBalance(ctx, req.Token)
+	if err != nil {
+		return nil, err
+	}
+	return &protocol.Balance{Balance: balance}, nil
+}
+
+func (s server) GetUserData(ctx context.Context, req *protocol.Token) (*protocol.UserData, error) {
+	if !s.database.ValidateToken(ctx, req.Token) {
+		return nil, errors.New("Unauthorized ")
+	}
 	positions, err := s.database.GetUserPositionsByToken(ctx, req.Token)
 	if err != nil {
 		return nil, err
