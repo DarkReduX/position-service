@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.1.0
 // - protoc             v3.6.1
-// source: src/internal/protocol/price.proto
+// source: src/protocol/price.proto
 
 package protocol
 
@@ -191,7 +191,7 @@ var PriceService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "src/internal/protocol/price.proto",
+	Metadata: "src/protocol/price.proto",
 }
 
 // PositionServiceClient is the client API for PositionService service.
@@ -203,6 +203,7 @@ type PositionServiceClient interface {
 	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginResp, error)
 	Logout(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Response, error)
 	GetUserData(ctx context.Context, in *Token, opts ...grpc.CallOption) (*UserData, error)
+	GetUserBalance(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Balance, error)
 	Donate(ctx context.Context, in *DonateValue, opts ...grpc.CallOption) (*Response, error)
 }
 
@@ -259,6 +260,15 @@ func (c *positionServiceClient) GetUserData(ctx context.Context, in *Token, opts
 	return out, nil
 }
 
+func (c *positionServiceClient) GetUserBalance(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Balance, error) {
+	out := new(Balance)
+	err := c.cc.Invoke(ctx, "/protocol.PositionService/GetUserBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *positionServiceClient) Donate(ctx context.Context, in *DonateValue, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/protocol.PositionService/Donate", in, out, opts...)
@@ -277,6 +287,7 @@ type PositionServiceServer interface {
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	Logout(context.Context, *Token) (*Response, error)
 	GetUserData(context.Context, *Token) (*UserData, error)
+	GetUserBalance(context.Context, *Token) (*Balance, error)
 	Donate(context.Context, *DonateValue) (*Response, error)
 	mustEmbedUnimplementedPositionServiceServer()
 }
@@ -299,6 +310,9 @@ func (UnimplementedPositionServiceServer) Logout(context.Context, *Token) (*Resp
 }
 func (UnimplementedPositionServiceServer) GetUserData(context.Context, *Token) (*UserData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserData not implemented")
+}
+func (UnimplementedPositionServiceServer) GetUserBalance(context.Context, *Token) (*Balance, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserBalance not implemented")
 }
 func (UnimplementedPositionServiceServer) Donate(context.Context, *DonateValue) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Donate not implemented")
@@ -406,6 +420,24 @@ func _PositionService_GetUserData_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PositionService_GetUserBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Token)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PositionServiceServer).GetUserBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protocol.PositionService/GetUserBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PositionServiceServer).GetUserBalance(ctx, req.(*Token))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PositionService_Donate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DonateValue)
 	if err := dec(in); err != nil {
@@ -452,10 +484,14 @@ var PositionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PositionService_GetUserData_Handler,
 		},
 		{
+			MethodName: "GetUserBalance",
+			Handler:    _PositionService_GetUserBalance_Handler,
+		},
+		{
 			MethodName: "Donate",
 			Handler:    _PositionService_Donate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/internal/protocol/price.proto",
+	Metadata: "src/protocol/price.proto",
 }
