@@ -256,7 +256,9 @@ func (db *Postgres) ListenNotify() error {
 					}
 					log.Infof("position %v-%v closed", pos.Symbol, pos.UUID)
 
-					close(db.PriceChannels[pos.Symbol][pos.UUID])
+					if ch, ok := db.PriceChannels[pos.Symbol][pos.UUID]; ok {
+						close(ch)
+					}
 					delete(db.PriceChannels[pos.Symbol], pos.UUID)
 
 					continue
