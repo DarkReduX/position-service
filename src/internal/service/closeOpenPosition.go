@@ -118,7 +118,7 @@ func (s server) SendClosePositionRequest(ctx context.Context, price *protocol.Po
 		}
 		return &protocol.Response{Message: "FAIL"}, nil
 	}
-	return &protocol.Response{Message: "OK"}, nil
+	return &protocol.Response{Message: "FAIL"}, nil
 }
 
 func (s server) SendOpenPositionRequest(ctx context.Context, price *protocol.PositionOpenReq) (*protocol.Response, error) {
